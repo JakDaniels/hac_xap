@@ -1,0 +1,66 @@
+# This is an id=>name mappings file
+ID	TYPE	NAME
+01	04	Living Room.Ceiling.LED
+02	01	Living Room.Ceiling.Bulb
+03	01	Living Room.Fireplace.LED
+04	01	Living Room.Fireplace.Fan
+05	01	Living Room.Uplights.LED1-3
+06	01	Living Room.Uplights.LED4-7
+07	01	Dining Room.Table.LED
+08	01	Dining Room.Uplights.LED
+09	01	Dining Room.Uplights.Bulb
+10	01	Dining Room.Ceiling.LED
+11	01	Dining Room.Ceiling.Bulb1-2
+12	01	Kitchen.Ceiling.Bulb
+13	01	Kitchen.Worktop.LED
+14	01	Hall.Bulb
+15	01	Porch.Bulb
+16	01	Master Bedroom.LED
+17	01	Master Bedroom.Bulb
+18	01	Balcony.Bulb1
+19	01	Balcony.Bulb2
+20	01	Second Bedroom.LED
+21	01	Second Bedroom.Bulb
+22	01	Office.LED
+23	01	Office.Bulb
+24	01	Spare Bedroom.LED
+25	01	Spare Bedroom.Bulb
+26	01	Landing.LED
+27	01	Bathroom.LED
+28	01	Bathroom.Bulb
+29	01	Outside.Bulb1
+30	01	Outside.Bulb2
+31	01	Unused.Light31
+32	01	Unused.Light32
+33	01	Light33
+34	01	Light34
+35	01	Light35
+36	01	Light36
+37	01	Light37
+38	01	Light38
+39	01	Light39
+40	01	Light40
+41	01	Light41
+42	01	Light42
+43	01	Light43
+44	01	Light44
+45	01	Light45
+46	01	Light46
+47	01	Light47
+48	01	Light48
+49	01	Light49
+50	01	Light50
+51	01	Light51
+52	01	Light52
+53	01	Light53
+54	01	Light54
+55	01	Light55
+56	01	Light56
+57	01	Light57
+58	01	Light58
+59	01	Light59
+60	01	Light60
+61	01	Light61
+62	01	Light62
+63	01	Light63
+64	01	Light64

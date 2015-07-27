@@ -1,0 +1,12 @@
+xap-header
+{
+v=13
+hop=1
+uid=FF000E00
+class=xAPBSC.Query
+source=Rocket.xAP-Tx.Test
+target=ersp.HouseBot.purple:TestDevice
+}
+request
+{
+}

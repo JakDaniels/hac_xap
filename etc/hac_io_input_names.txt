@@ -1,0 +1,66 @@
+# This is an id=>name mappings file
+ID	TYPE	NAME
+01	03	Living Room.1
+02	03	Living Room.2
+03	03	Living Room.3
+04	03	Living Room.4
+05	03	Dining Room.1
+06	03	Dining Room.2
+07	03	Dining Room.3
+08	03	Dining Room.4
+09	03	Kitchen.1
+10	03	Kitchen.2
+11	03	Porch.1
+12	03	Porch.2
+13	03	Porch.3
+14	03	Master Bedroom
+15	03	Balcony
+16	03	Second Bedroom
+17	03	Office
+18	03	Spare Bedroom
+19	03	Landing
+20	03	Bathroom
+21	03	Unused.Switch21
+22	03	Unused.Switch22
+23	03	Unused.Switch23
+24	03	Unused.Switch24
+25	03	Unused.Switch25
+26	03	Unused.Switch26
+27	03	Unused.Switch27
+28	02	Unused.Switch28
+29	03	Unused.Switch29
+30	03	Unused.Switch30
+31	03	Unused.Switch31
+32	03	Unused.Switch32
+33	03	Switch33
+34	03	Switch34
+35	03	Switch35
+36	03	Switch36
+37	03	Switch37
+38	03	Switch38
+39	03	Switch39
+40	03	Switch40
+41	03	Switch41
+42	03	Switch42
+43	03	Switch43
+44	03	Switch44
+45	03	Switch45
+46	03	Switch46
+47	03	Switch47
+48	03	Switch48
+49	03	Switch49
+50	03	Switch50
+51	03	Switch51
+52	03	Switch52
+53	03	Switch53
+54	03	Switch54
+55	03	Switch55
+56	03	Switch56
+57	03	Switch57
+58	03	Switch58
+59	03	Switch59
+60	03	Switch60
+61	03	Switch61
+62	03	Switch62
+63	03	Switch63
+64	03	Switch64

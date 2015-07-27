@@ -1,0 +1,130 @@
+# This is an id=>name mappings file
+ID	NAME
+001	Living Room.Ceiling.Red
+002	Living Room.Ceiling.Green
+003	Living Room.Ceiling.Blue
+004	Living Room.Ceiling.White
+005	Living Room.Fireplace.Red
+006	Living Room.Fireplace.Green
+007	Living Room.Fireplace.Blue
+008	Living Room.Fireplace.White
+009	Living Room.Uplights.1.Red
+010	Living Room.Uplights.1.Green
+011	Living Room.Uplights.1.Blue
+012	Living Room.Uplights.1.White
+013	Living Room.Uplights.2.Red
+014	Living Room.Uplights.2.Green
+015	Living Room.Uplights.2.Blue
+016	Living Room.Uplights.2.White
+017	Living Room.Uplights.3.Red
+018	Living Room.Uplights.3.Green
+019	Living Room.Uplights.3.Blue
+020	Living Room.Uplights.3.White
+021	Living Room.Uplights.4.Red
+022	Living Room.Uplights.4.Green
+023	Living Room.Uplights.4.Blue
+024	Living Room.Uplights.4.White
+025	Living Room.Uplights.5.Red
+026	Living Room.Uplights.5.Green
+027	Living Room.Uplights.5.Blue
+028	Living Room.Uplights.5.White
+029	Living Room.Uplights.6.Red
+030	Living Room.Uplights.6.Green
+031	Living Room.Uplights.6.Blue
+032	Living Room.Uplights.6.White
+033	Living Room.Uplights.7.Red
+034	Living Room.Uplights.7.Green
+035	Living Room.Uplights.7.Blue
+036	Living Room.Uplights.7.White
+037	Dining Room.Table.Red
+038	Dining Room.Table.Green
+039	Dining Room.Table.Blue
+040	Dining Room.Table.White
+041	Dining Room.Uplights.1.Red
+042	Dining Room.Uplights.1.Green
+043	Dining Room.Uplights.1.Blue
+044	Dining Room.Uplights.1.White
+045	Dining Room.Uplights.2.Red
+046	Dining Room.Uplights.2.Green
+047	Dining Room.Uplights.2.Blue
+048	Dining Room.Uplights.2.White
+049	Dining Room.Uplights.3.Red
+050	Dining Room.Uplights.3.Green
+051	Dining Room.Uplights.3.Blue
+052	Dining Room.Uplights.3.White
+053	Dining Room.Uplights.4.Red
+054	Dining Room.Uplights.4.Green
+055	Dining Room.Uplights.4.Blue
+056	Dining Room.Uplights.4.White
+057	Dining Room.Ceiling.1.Red
+058	Dining Room.Ceiling.1.Green
+059	Dining Room.Ceiling.1.Blue
+060	Dining Room.Ceiling.1.White
+061	Dining Room.Ceiling.2.Red
+062	Dining Room.Ceiling.2.Green
+063	Dining Room.Ceiling.2.Blue
+064	Dining Room.Ceiling.2.White
+065	Kitchen.Worktop.Red
+066	Kitchen.Worktop.Green
+067	Kitchen.Worktop.Blue
+068	Kitchen.Worktop.White
+069	Master Bedroom.1.Red
+070	Master Bedroom.1.Green
+071	Master Bedroom.1.Blue
+072	Master Bedroom.1.White
+073	Master Bedroom.2.Red
+074	Master Bedroom.2.Green
+075	Master Bedroom.2.Blue
+076	Master Bedroom.2.White
+077	Second Bedroom.Red
+078	Second Bedroom.Green
+079	Second Bedroom.Blue
+080	Second Bedroom.White
+081	Office.Red
+082	Office.Green
+083	Office.Blue
+084	Office.White
+085	Spare Bedroom.Red
+086	Spare Bedroom.Green
+087	Spare Bedroom.Blue
+088	Spare Bedroom.White
+089	Landing.1.Red
+090	Landing.1.Green
+091	Landing.1.Blue
+092	Landing.1.White
+093	Landing.2.Red
+094	Landing.2.Green
+095	Landing.2.Blue
+096	Landing.2.White
+097	Landing.3.Red
+098	Landing.3.Green
+099	Landing.3.Blue
+100	Landing.3.White
+101	Landing.4.Red
+102	Landing.4.Green
+103	Landing.4.Blue
+104	Landing.4.White
+105	Bathroom.Red
+106	Bathroom.Green
+107	Bathroom.Blue
+108	Bathroom.White
+109	Unused.ch109
+110	Unused.ch110
+111	Unused.ch111
+112	Unused.ch112
+113	Unused.ch113
+114	Unused.ch114
+115	Unused.ch115
+116	Unused.ch116
+117	Unused.ch117
+118	Unused.ch118
+119	Unused.ch119
+120	Unused.ch120
+121	Dining Room.Uplights.Bulb
+122	Dining Room.Ceiling.1.Bulb
+123	Dining Room.Ceiling.2.Bulb
+124	Kitchen.Ceiling.Bulb
+125	Hall.Bulb
+126	Master Bedroom.Bulb
+127	Second Bedroom.Bulb
+128	Spare Bedroom.Bulb
