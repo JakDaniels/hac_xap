@@ -64,7 +64,7 @@ function io_create_state_file($state_file,&$out_states,&$in_states,&$in_programs
 	$in_states='00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
 	$in_programs='00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
 	$in_levels='A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0';
-	return write_state_file($state_file,$out_states,$in_states,$in_programs,$in_levels);
+	return io_write_state_file($state_file,$out_states,$in_states,$in_programs,$in_levels);
 }
 
 function io_read_state_file($state_file,&$out_states,&$in_states,&$in_programs,&$in_levels) {
@@ -80,7 +80,7 @@ function io_read_state_file($state_file,&$out_states,&$in_states,&$in_programs,&
 					break;
 				case 2:
 					$in_states=$l;
-					break;					
+					break;
 				case 3:
 					$in_programs=$l;
 					break;
