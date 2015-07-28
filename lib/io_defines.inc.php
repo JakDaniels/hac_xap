@@ -21,8 +21,14 @@ define ('POLLINTERVAL',50);
 define ('HOLDINTERVAL',1000);
 
 # define which gpio pins we will use for the switch up/down multiplex line
-define ('GPIO_PIN_UP',4);
-define ('GPIO_PIN_DN',5);
+if(IO_LIBRARY=='wiringPI') {
+	define ('GPIO_PIN_UP',4);
+	define ('GPIO_PIN_DN',5);
+}
+if(IO_LIBRARY=='A10Lime') {
+	define ('GPIO_PIN_UP',PIN_PG0);
+	define ('GPIO_PIN_DN',PIN_PG1);
+}
 
 //registers on the PCA9555
 define('PCA9555_INPORT0',		0x00);

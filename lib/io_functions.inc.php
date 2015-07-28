@@ -142,8 +142,8 @@ function set_outputs(&$out_states) {
 	global $out1,$out2;
 	$o='';
 	for($i=0;$i<64;$i++) $o.=(hexdec(substr($out_states,$i*2,2))?'1':'0');
-	$r=wiringPiI2CWriteReg16 ($out1, PCA9555_OUTPORT0, bindec(substr($o,0,16))) ; //sends to OUTPORT0 and 1
-	$r=wiringPiI2CWriteReg16 ($out2, PCA9555_OUTPORT0, bindec(substr($o,16,16))) ; //sends to OUTPORT0 and 1
+	$r=I2C_WriteReg16 ($out1, PCA9555_OUTPORT0, bindec(substr($o,0,16))) ; //sends to OUTPORT0 and 1
+	$r=I2C_WriteReg16 ($out2, PCA9555_OUTPORT0, bindec(substr($o,16,16))) ; //sends to OUTPORT0 and 1
 }
 
 function set_output_state(&$outputs,$i,$state) {

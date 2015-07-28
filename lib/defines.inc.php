@@ -1,4 +1,5 @@
 <?php
+define ('IO_LIBRARY','A10Lime'); //set to A10Lime or wiringPI
 
 define ('XAPHEARTBEAT',120);
 define ('XAPPORT',3639);
