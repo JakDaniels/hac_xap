@@ -29,7 +29,7 @@ function signal_handler($signal) {
 			$must_exit='SIGINT';
 			break;
 	}
-	print $must_exit;
+	print $must_exit."\n";
 }
 
 function parse_args(&$argc,&$argv) {
