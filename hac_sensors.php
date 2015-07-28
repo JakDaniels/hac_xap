@@ -2,7 +2,7 @@
 <?php
 
 define ('XAPUID','FF10A200');
-define ('XAPSOURCE','Hengwm.HAC.Temperature');
+define ('XAPSOURCE','Hengwm.HAC.Sensors');
 define ('XAPHEARTBEAT',60);
 define ('XAPPORT',3639);
 define ('XAPRXTIMEOUT',5.0);
@@ -12,11 +12,11 @@ define ('XAP_DEBUG_ID',2);
 
 include("lib/xaplib.inc.php");
 
-define ('TEMPPOLLTIME',60); //how often to read temp sensors
+define ('SENSORPOLLTIME',60); //how often to read sensors
 define ('SENSORPATH','/sys/devices/w1_bus_master1');
 define ('SENSORLIST',SENSORPATH.'/w1_master_slaves');
 
-define ('SENSORMAPFILE',dirname(__FILE__).'/hac_w1_sensor_map.txt');
+define ('SENSORMAPFILE',dirname(__FILE__).'/etc/hac_w1_sensor_map.txt');
 
 date_default_timezone_set('Europe/London');
 ob_implicit_flush ();
@@ -51,7 +51,7 @@ if(isset($args['r']) or isset($args['remap-sensors'])) {
 
 
 
-$ltt=time()-TEMPPOLLTIME-1;
+$ltt=time()-SENSORPOLLTIME-1;
 
 xap_connect();
 
@@ -61,8 +61,8 @@ while(1) {
 	//send xAP heartbeat periodically
 	$t=floor(xap_check_send_heartbeat()); //and return time in secs
 
-	if($t-$ltt>TEMPPOLLTIME) {
-		$tsent=send_temperatures();
+	if($t-$ltt>SENSORPOLLTIME) {
+		$tsent=send_data();
 		$ltt=$t;
 	}
 
@@ -71,24 +71,28 @@ while(1) {
 }
 
 //------------------------------------------------------
-function send_temperatures() {
+function send_data() {
 	global $debug;
 	$s=enumerate_w1_sensors();
 	if(is_array($s)) {
 		foreach($s as $k=>$v) { //$k=xap_id $v=sensor metadata
-			if($v['TYPE']==28) {
-				$id=$v['TYPE'].'-'.$v['SENSOR_ID'];
-				if($debug) printf("Reading 1 wire probe with ID %s: ",$id);
-				$cmd='cat '.SENSORPATH.'/'.$id.'/w1_slave';
-				$r=explode("\n",`$cmd`);
-				if(substr($r[0],-3)=='YES') {
-					$t=explode("=",$r[1]);
-					$temp=sprintf("%.03f",$t[1]/1000);
-					if($debug) printf("%s degC\n",$temp);
-					$msg=sprintf("info.temperature\n{\nname=%s\ndatetime=%s\nunit=c\nvalue=%s\nsensorId=%s\n}\n",XAPSOURCE.'.'.$v['NAME'],date('YmdHis'),$temp,$id);
-					xap_sendMsg('xAPTSC.info',$msg,'',xap_make_endpoint_source($k),xap_make_endpoint_uid($k));
+			if($v['AVAILABLE']=='YES') {
+
+				if($v['TYPE']==28) { //1 wire temperature sensor
+					$id=$v['TYPE'].'-'.$v['SENSOR_ID'];
+					if($debug) printf("Reading 1 wire temperature sensor with ID: '%s' and NAME: '%s'. Data=",$id,$v['NAME']);
+					$cmd='cat '.SENSORPATH.'/'.$id.'/w1_slave';
+					$r=explode("\n",`$cmd`);
+					if(substr($r[0],-3)=='YES') {
+						$t=explode("=",$r[1]);
+						$temp=sprintf("%.03f",$t[1]/1000);
+						if($debug) printf("%s degC\n",$temp);
+						$msg=sprintf("info.temperature\n{\nname=%s\ndatetime=%s\nunit=c\nvalue=%s\nsensorId=%s\n}\n",XAPSOURCE.'.'.$v['NAME'],date('YmdHis'),$temp,$id);
+						xap_sendMsg('xAPTSC.info',$msg,'',xap_make_endpoint_source(XAPSOURCE,$k),xap_make_endpoint_uid(XAPUID,$k));
+					}
 				}
-			}
+
+			} else if($debug) printf("Skipping 1 wire sensor with ID: '%s-%s' and NAME: '%s'.\n",$v['TYPE'],$v['SENSOR_ID'],$v['NAME']);
 		}
 	}
 	return 1;
@@ -129,7 +133,9 @@ function enumerate_w1_sensors($keep_existing=1,$keep_names=1) {
 				if($sensor_count) {
 					for($i=0;$i<$sensor_count;$i++) {
 						if($sensors[$i]['TYPE']==$type and $sensors[$i]['SENSOR_ID']==$sensor_id) {
-							$sensors[$i]['AVAILABLE']='YES';
+							$id=$sensors[$i]['TYPE'].'-'.$sensors[$i]['SENSOR_ID'];
+							if(file_exists(SENSORPATH.'/'.$id.'/w1_slave')) $sensors[$i]['AVAILABLE']='YES';
+							else $sensors[$i]['AVAILABLE']='NO';
 							$not_found=0;
 						}
 					}
