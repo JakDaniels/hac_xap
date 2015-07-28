@@ -27,7 +27,7 @@ ID	TYPE	NAME
 25	03	Unused.Switch25
 26	03	Unused.Switch26
 27	03	Unused.Switch27
-28	02	Unused.Switch28
+28	03	Unused.Switch28
 29	03	Unused.Switch29
 30	03	Unused.Switch30
 31	03	Unused.Switch31
