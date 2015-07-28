@@ -10,7 +10,7 @@ define ('XAPRXTIMEOUT',5.0);
 # debug values (can be ORed together)
 define ('XAP_DEBUG_ID',2);
 
-include("xaplib.inc.php");
+include("lib/xaplib.inc.php");
 
 define ('TEMPPOLLTIME',60); //how often to read temp sensors
 define ('SENSORPATH','/sys/devices/w1_bus_master1');
@@ -57,7 +57,7 @@ xap_connect();
 
 while(1) {
 	if($must_exit) break;
-	
+
 	//send xAP heartbeat periodically
 	$t=floor(xap_check_send_heartbeat()); //and return time in secs
 
@@ -65,9 +65,9 @@ while(1) {
 		$tsent=send_temperatures();
 		$ltt=$t;
 	}
-	
+
 	sleep(5);
-	
+
 }
 
 //------------------------------------------------------
@@ -112,11 +112,11 @@ function enumerate_w1_sensors($keep_existing=1,$keep_names=1) {
 				if(preg_match_all("/^([0-9]+)[\t]+([0-9]{2})[\t]+([0-9a-f]{12})[\t]+(YES|NO)[\t]+([a-z0-9\ \_\-\.]+)$/i",$l,$m)) {
 					$names[$m[2][0].'-'.$m[3][0]]=$m[5][0];
 				}
-			}		
-		}		
+			}
+		}
 	}
 	$sensor_count=count($sensors);
-	
+
 	//now check whats is actually present and update the file if necessary
 	$sl=@file(SENSORLIST,FILE_IGNORE_NEW_LINES);
 	if(is_array($sl)) {
@@ -165,7 +165,7 @@ function signal_handler($signal) {
 			$must_exit='SIGINT';
 			break;
 	}
-	print $must_exit;
+	print $must_exit."\n";
 }
 
 function parse_args(&$argc,&$argv) {
