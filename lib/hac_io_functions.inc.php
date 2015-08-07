@@ -1,5 +1,26 @@
 <?php
 
+function io_check_hardware($in1,$in2,$in3,$in4,$out1,$out2) {
+	# set all pins as inputs on the input boards
+	$error=0;
+	if($i1=I2C_Write ($in1, 255)<0) $error++; //chip is bidirectional, set outputs to 1 to read as input
+	if($i2=I2C_Write ($in2, 255)<0) $error++; //chip is bidirectional, set outputs to 1 to read as input
+	if($i3=I2C_Write ($in3, 255)<0) $error++; //chip is bidirectional, set outputs to 1 to read as input
+	if($i4=I2C_Write ($in4, 255)<0) $error++; //chip is bidirectional, set outputs to 1 to read as input
+	if($i1) logformat(sprintf("Opto input board 1 with address: 0x%X is missing or not functioning!\n",PCF8574_ADDR1),1);
+	if($i2) logformat(sprintf("Opto input board 2 with address: 0x%X is missing or not functioning!\n",PCF8574_ADDR2),1);
+	if($i3) logformat(sprintf("Opto input board 3 with address: 0x%X is missing or not functioning!\n",PCF8574_ADDR3),1);
+	if($i4) logformat(sprintf("Opto input board 4 with address: 0x%X is missing or not functioning!\n",PCF8574_ADDR4),1);
+	if($error) return $error;
+	#set all pins as outputs on the output boards and set all outputs high
+	if($o1=I2C_WriteReg16 ($out1, PCA9555_CONFPORT0, 0)<0) $error++; //sends to CONFPORT0 and 1
+	if($o2=I2C_WriteReg16 ($out2, PCA9555_CONFPORT0, 0)<0) $error++; //sends to CONFPORT0 and 1
+	if($o1) logformat(sprintf("PCA9555 based output board 1 with address: 0x%X is missing or not functioning!\n",PCA9555_ADDR1),1);
+	if($o2) logformat(sprintf("PCA9555 based output board 2 with address: 0x%X is missing or not functioning!\n",PCA9555_ADDR2),1);
+	if($error) return $error;
+	return 0;
+}
+
 function io_write_shared_memory($shm_id,$os,$is,$ip,$il) {
 	global $debug;
 	if($os) shmop_write($shm_id,$os,0);

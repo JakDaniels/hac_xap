@@ -31,11 +31,14 @@ define("DMX_END_BYTE",0xE7);
 function dmx_connect() {
 	global $debug,$dmx,$read_buffer;
 	$r=trim(`ls -1 /dev/serial/by-id 2>/dev/null |grep "DMX"`);
-	if($r=='') die("No USB DMX Interface appears to be connected!\n");
+	if($r=='') {
+		logformat("No USB DMX Interface appears to be connected!\n");
+		exit(1);
+	}
 	$t=explode("-",$r);
-	if(isset($t[1])) printf("Found a %s\n",$t[1]);
-	$interface="/dev/serial/by-id/".$r;	
-	`stty -F $interface 115200 raw -echo`;
+	if(isset($t[1])) logformat(sprintf("Found a %s\n",$t[1]));
+	$interface="/dev/serial/by-id/".$r;
+	`stty -F $interface 230400 raw -echo`;
 	if($dmx=fopen($interface,'w+')) {
 		stream_set_blocking($dmx, 0);
 		stream_set_read_buffer($dmx , 2048);
@@ -96,18 +99,18 @@ function dmx_get_next_packet(&$read_buffer) {
 	if(preg_match($regexp,$read_buffer,$m,PREG_OFFSET_CAPTURE)) {
 		$packet=$m[1][0]; $offset=$m[1][1];
 		$read_buffer=substr($read_buffer,0,$offset).substr($read_buffer,$offset+strlen($packet));
-		if($debug&DMX_DEBUG_ID) printf("Received: %s\n",hex_display($packet));
+		if($debug&DMX_DEBUG_ID) logformat(sprintf("Received: %s\n",hex_display($packet)));
 		return $packet;
 	}
 	return 0;
-}			
+}
 
 function dmx_write($cmd,$s,&$data) {
 	global $debug,$dmx;
 	$sLSB=$s%256;
 	$sMSB=floor($s/256);
 	$packet=chr(DMX_START_BYTE).chr($cmd).chr($sLSB).chr($sMSB).$data.chr(DMX_END_BYTE);
-	if($debug&DMX_DEBUG_ID) printf("Sent: %s\n",hex_display($packet));
+	if($debug&DMX_DEBUG_ID) logformat(sprintf("Sent: %s\n",hex_display($packet)));
 	$w=fwrite($dmx,$packet);
 	fflush($dmx);
 	return $w;
@@ -189,5 +192,5 @@ function dmx_get_dmx_change_data($x,&$dmx_input) {
 		}
 		return 1;
 	}
-	return 0;		
+	return 0;
 }

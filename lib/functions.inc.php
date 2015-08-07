@@ -29,7 +29,7 @@ function signal_handler($signal) {
 			$must_exit='SIGINT';
 			break;
 	}
-	print $must_exit."\n";
+	logformat(sprintf("Received signal: %s\n",$must_exit));
 }
 
 function parse_args(&$argc,&$argv) {
@@ -70,4 +70,9 @@ function chr_to_bcd($s) {
 	$data='';
 	for($i=0;$i<128;$i++) $data.=sprintf("%02X",ord(substr($s,$i,1)));
 	return $data;
+}
+
+function logformat($msg,$OverrideDebug=0) {
+	global $debug;
+	if($debug||$OverrideDebug) printf("%s %s",date('Y-m-d H:i:s'),$msg);
 }

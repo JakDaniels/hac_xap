@@ -9,18 +9,18 @@ function xap_connect() {
 	socket_set_option($xap_sock_in, SOL_SOCKET, SO_RCVTIMEO, array('sec'=>floor(XAPRXTIMEOUT),'usec'=>(XAPRXTIMEOUT-floor(XAPRXTIMEOUT))*1000000));
 	$xap_port=XAPPORT;
 	if(!@socket_bind($xap_sock_in,'0.0.0.0',$xap_port)) {
-		printf("Broadcast socket port %s in use\n",XAPPORT);
-		print "Assuming a xAP hub is active\n";
+		logformat(printf("Broadcast socket port %s in use\n",XAPPORT),1);
+		logformat("Assuming a xAP hub is active\n",1);
 		for($xap_port=XAPPORT+1;$xap_port<XAPPORT+1000;$xap_port++) {
 			if(!@socket_bind($xap_sock_in,'127.0.0.1',$xap_port)) {
-				printf("Socket port %s is in use\n",$xap_port);
+				logformat(sprintf("Socket port %s is in use\n",$xap_port),1);
 			} else {
-				printf("Discovered port %s\n",$xap_port);
+				logformat(sprintf("Discovered port %s\n",$xap_port),1);
 				break;
 			}
 		}
 	}
-	printf("Listening on port %s\n",$xap_port);
+	logformat(sprintf("Listening on port %s\n",$xap_port),1);
 	//$xap_sock_out=socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
 	//socket_set_option($xap_sock_out, SOL_SOCKET, SO_BROADCAST, 1);
 }
@@ -31,7 +31,7 @@ function xap_send($msg) {
 		@socket_set_option($xap_sock_out, SOL_SOCKET, SO_BROADCAST, 1);
 		@socket_sendto($xap_sock_out, $msg, strlen($msg), 0, '255.255.255.255', XAPPORT);
 		@socket_close($xap_sock_out);
-		if($debug&XAP_DEBUG_ID) printf("%sSent at %s:\n%s%s",SEPARATOR,date('YmdHis'),$msg,SEPARATOR);
+		if($debug&XAP_DEBUG_ID) logformat(sprintf("%sSent at %s:\n%s%s",SEPARATOR,date('YmdHis'),$msg,SEPARATOR));
 		return 1;
 	} else return 0;
 }
@@ -52,7 +52,7 @@ function xap_send_heartbeat_stop($xapuid='',$xapsource='',$xapip='') {
 	if(!is_array($xapuid)) $xapuid=array($xapuid);
 	if(!is_array($xapsource)) $xapsource=array($xapsource);
 	if($xapip!='') $xapip="ip=$xapip\n";
-	for($i=0;$i<count($xapuid);$i++) {	
+	for($i=0;$i<count($xapuid);$i++) {
 		$msg=sprintf("xap-hbeat\n{\nv=13\nhop=1\nuid=%s\nclass=xap-hbeat.stopped\nsource=%s\ninterval=%s\nport=%s\n%s}\n",$xapuid[$i],$xapsource[$i],XAPHEARTBEAT,$xap_port,$xapip);
 		xap_send($msg);
 	}
@@ -124,7 +124,7 @@ function xap_listen(&$buffer) {
 	if(strlen($buffer)) {
 		$buffer=preg_replace("/^(}|{)([a-z]+)/i",'${1}'."\n".'${2}',$buffer);
 		$buffer=preg_replace("/}$/i","}\n",$buffer);
-		if($debug&XAP_DEBUG_ID) printf("%sReceived at %s:\n%s%s",SEPARATOR,date('YmdHis'),$buffer,SEPARATOR);
+		if($debug&XAP_DEBUG_ID) logformat(sprintf("%sReceived at %s:\n%s%s",SEPARATOR,date('YmdHis'),$buffer,SEPARATOR));
 		$xa=explode("\n",$buffer);
 		$b=array_pop($xa);
 		if(count($xa)) {
@@ -211,9 +211,9 @@ function xap_check_target(&$xap,$s) {
 
 function xap_check_address_match($source,$target) {
 	global $debug;
-	if($debug&ADDR_DEBUG_ID) printf("Checking %s against %s : ",$source,$target);
+	if($debug&ADDR_DEBUG_ID) logformat(sprintf("Checking %s against %s : ",$source,$target));
 	if($target==''or $source=='') return 0; //can't match empty source or target
-	
+
 	$s=explode(":",$source); //split up address and subaddress parts
 	$s1=explode(".",$s[0]);
 	if(isset($s[1])) $s2=explode(".",$s[1]); else $s2=array();
@@ -222,10 +222,10 @@ function xap_check_address_match($source,$target) {
 	$t=explode(":",$target);
 	$t1=explode(".",$t[0]);
 	if(isset($t[1])) $t2=explode(".",$t[1]); else $t2=array();
-	
+
 	$s1matches=0;
 	$s2matches=0;
-	
+
 	for($i=0;$i<$cs1;$i++) {
 		if(isset($t1[$i])) {
 			if($t1[$i]=='>') {
@@ -237,7 +237,7 @@ function xap_check_address_match($source,$target) {
 		}
 	}
 	if($s1matches==$cs1 and $s2matches==$cs2) {
-		if($debug&ADDR_DEBUG_ID) print "True\n";
+		if($debug&ADDR_DEBUG_ID) logformat("True\n");
 		return 1;
 	}
 
@@ -249,13 +249,13 @@ function xap_check_address_match($source,$target) {
 			}
 			if(strcasecmp($s2[$i],$t2[$i])==0 or $t2[$i]=='*') $s2matches++;
 		}
-	}	
-	
+	}
+
 	if($s1matches==$cs1 and $s2matches==$cs2) {
-		if($debug&ADDR_DEBUG_ID) print "True\n";
+		if($debug&ADDR_DEBUG_ID) logformat("True\n");
 		return 1;
 	}
-	
-	if($debug&ADDR_DEBUG_ID) print "False\n";
+
+	if($debug&ADDR_DEBUG_ID) logformat("False\n");
 	return 0;
 }
