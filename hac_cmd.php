@@ -15,6 +15,7 @@ include("lib/hac_io_functions.inc.php");
 include("lib/dmx_xap_functions.inc.php");
 include("lib/hac_dmx_defines.inc.php");
 include("lib/hac_dmx_functions.inc.php");
+logformat("hac_cmd is starting....\n");
 
 $out_states=''; //these will be 64 2 digit hex items
 $in_states='';
@@ -29,57 +30,76 @@ if(!$r=io_read_names_file($inames_file,$inames,$itypes)) die("Could not read inp
 if(!$r=io_read_names_file($onames_file,$onames,$otypes)) die("Could not read output names file $onames_file");
 
 if($debug&NAMES_DEBUG_ID) {
-	print "Startup IO Inputs:\n";
-	print implode(", ",explode("\n",print_r($inames,1)));
-	print "Startup IO Outputs:\n";
-	print implode(", ",explode("\n",print_r($onames,1)));
+	logformat("Startup IO Inputs:\n");
+	logformat(implode(", ",explode("\n",print_r($inames,1))));
+	logformat("Startup IO Outputs:\n");
+	logformat(implode(", ",explode("\n",print_r($onames,1))));
 }
 
 $dmx_inputs='';	//these will be 512 2 digit hex items
-$dmx_outputs1='';	
+$dmx_outputs1='';
 $dmx_outputs2='';
 
 $dinames=array();		//input names id=>name
 $donames1=array();	//output names id=>name universe 1
 $donames2=array();	//output names id=>name universe 2
 
-if(!$r=dmx_read_names_file($dinames_file,$dinames)) die("Could not read input names file $dinames_file");
-if(!$r=dmx_read_names_file($donames1_file,$donames1)) die("Could not read output names file $donames1_file");
-if(!$r=dmx_read_names_file($donames2_file,$donames2)) die("Could not read output names file $donames2_file");
-
-if($debug&NAMES_DEBUG_ID) {
-	print "Startup DMX Inputs:\n";
-	print implode(", ",explode("\n",print_r($dinames,1)));
-	print "Startup DMX Outputs1:\n";
-	print implode(", ",explode("\n",print_r($donames1,1)));
-	print "Startup DMX Outputs2:\n";
-	print implode(", ",explode("\n",print_r($donames2,1)));
+if(!$r=dmx_read_names_file($dinames_file,$dinames)) {
+	logformat(sprintf("Could not read input names file %s\n",$dinames_file));
+	exit(1);
+}
+if(!$r=dmx_read_names_file($donames1_file,$donames1)) {
+	logformat(sprintf("Could not read output names file %s\n",$donames1_file));
+	exit(1);
+}
+if(!$r=dmx_read_names_file($donames2_file,$donames2)) {
+	logformat(sprintf("Could not read output names file %s\n",$donames2_file));
+	exit(1);
 }
 
-if(!$io_shm_id=shmop_open(IO_SHM_ID,'w',0,0)) die("Could not open IO shared memory segment!\n");
-if(!$dmx_shm_id=shmop_open(DMX_SHM_ID,'w',0,0)) die("Could not open DMX shared memory segment!\n");
+if($debug&NAMES_DEBUG_ID) {
+	logformat("Startup DMX Inputs:\n");
+	logformat(implode(", ",explode("\n",print_r($dinames,1))));
+	logformat("Startup DMX Outputs1:\n");
+	logformat(implode(", ",explode("\n",print_r($donames1,1))));
+	logformat("Startup DMX Outputs2:\n");
+	logformat(implode(", ",explode("\n",print_r($donames2,1))));
+}
 
-//read the IO shared memory buffer 
-if(!io_read_shared_memory($io_shm_id,$out_states,$in_states,$in_programs,$in_levels))
-	die("Could not read IO shared memory segment!\n");
+if(!$io_shm_id=@shmop_open(IO_SHM_ID,'w',0,0)) {
+	logformat("Could not open IO shared memory segment!\n");
+	exit(1);
+}
+if(!$dmx_shm_id=@shmop_open(DMX_SHM_ID,'w',0,0)) {
+	logformat("Could not open DMX shared memory segment!\n");
+	exit(1);
+}
+
+//read the IO shared memory buffer
+if(!io_read_shared_memory($io_shm_id,$out_states,$in_states,$in_programs,$in_levels)) {
+	logformat("Could not read IO shared memory segment!\n");
+	exit(1);
+}
 
 if($debug&IO_DEBUG_ID) {
-	print "Startup State:\n";
-	printf("Out States :%s\n",$out_states);
-	printf("In States  :%s\n",$in_states);
-	printf("In Programs:%s\n",$in_programs);
-	printf("In Levels  :%s\n",$in_levels);
+	logformat("Startup State:\n");
+	logformat(sprintf("Out States :%s\n",$out_states));
+	logformat(sprintf("In States  :%s\n",$in_states));
+	logformat(sprintf("In Programs:%s\n",$in_programs));
+	logformat(sprintf("In Levels  :%s\n",$in_levels));
 }
 
 //read the DMX shared memory buffer
-if(!dmx_read_shared_memory($dmx_shm_id,$dmx_inputs,$dmx_outputs1,$dmx_outputs2))
-	die("Could not read DMX shared memory segment!\n");
-	
+if(!dmx_read_shared_memory($dmx_shm_id,$dmx_inputs,$dmx_outputs1,$dmx_outputs2)) {
+	logformat("Could not read DMX shared memory segment!\n");
+	exit(1);
+}
+
 if($debug&DMX_DEBUG_ID) {
-	print "Startup State:\n";
-	printf("Input   :%s\n",$dmx_inputs);
-	printf("Output 1:%s\n",$dmx_outputs1);
-	printf("Outout 2:%s\n",$dmx_outputs2);
+	logformat("Startup State:\n");
+	logformat(sprintf("Input   :%s\n",$dmx_inputs));
+	logformat(sprintf("Output 1:%s\n",$dmx_outputs1));
+	logformat(sprintf("Outout 2:%s\n",$dmx_outputs2));
 }
 
 $io_last_info=time()-IOINFOSENDTIME-1;
@@ -98,39 +118,39 @@ $di=''; $do1=''; $do2='';
 
 while(1) {
 	if($must_exit) break;
-	
+
 	//send xAP heartbeat periodically
 	$t=xap_check_send_heartbeat(array(XAPUID_IO_IN,XAPUID_IO_OUT,XAPUID_DMX_IN1,XAPUID_DMX_OUT1,XAPUID_DMX_OUT2),
 															array(XAPSRC_IO_IN,XAPSRC_IO_OUT,XAPSRC_DMX_IN1,XAPSRC_DMX_OUT1,XAPSRC_DMX_OUT2));
 
 	io_read_shared_memory($io_shm_id,$out_states,$in_states,$in_programs,$in_levels);
 	dmx_read_shared_memory($dmx_shm_id,$dmx_inputs,$dmx_outputs1,$dmx_outputs2);
-	
+
 	if($xap=xap_listen($b)) {
 		if($debug&MSG_DEBUG_ID) print_r($xap);
 		$c=process_xap_msgs($xap);
 	}
-	
+
 	if($os.$is.$ip.$il!=$out_states.$in_states.$in_programs.$in_levels) {
 		if($debug&IO_DEBUG_ID) {
-			print "Current IO State:\n";
-			printf("Out States :%s\n",$out_states);
-			printf("In States  :%s\n",$in_states);
-			printf("In Programs:%s\n",$in_programs);
-			printf("In Levels  :%s\n",$in_levels);
+			logformat("Current IO State:\n");
+			logformat(sprintf("Out States :%s\n",$out_states));
+			logformat(sprintf("In States  :%s\n",$in_states));
+			logformat(sprintf("In Programs:%s\n",$in_programs));
+			logformat(sprintf("In Levels  :%s\n",$in_levels));
 		}
 		$os=$out_states; $is=$in_states; $ip=$in_programs; $il=$in_levels;
 	}
 	if($di.$do1.$do2!=$dmx_inputs.$dmx_outputs1.$dmx_outputs2) {
 		if($debug&DMX_DEBUG_ID) {
-			print "Current DMX State:\n";
-			printf("Input   :%s\n",$dmx_inputs);
-			printf("Output 1:%s\n",$dmx_outputs1);
-			printf("Output 2:%s\n",$dmx_outputs2);
+			logformat("Current DMX State:\n");
+			logformat(sprintf("Input   :%s\n",$dmx_inputs));
+			logformat(sprintf("Output 1:%s\n",$dmx_outputs1));
+			logformat(sprintf("Output 2:%s\n",$dmx_outputs2));
 		}
 		$di=$dmx_inputs; $do1=$dmx_outputs1; $do2=$dmx_outputs2;
 	}
-	
+
 	if($t-$last_tick_time>0.5)	{
 		//send info messages for switches and lights
 		if($t-$io_last_info>IOINFOSENDTIME) {
@@ -164,3 +184,4 @@ $t=xap_send_heartbeat_stop(	array(XAPUID_IO_IN,XAPUID_IO_OUT,XAPUID_DMX_IN1,XAPU
 socket_close($xap_sock_in);
 shmop_close($io_shm_id);
 shmop_close($dmx_shm_id);
+logformat("hac_cmd exiting cleanly.\n");

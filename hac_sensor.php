@@ -1,38 +1,16 @@
 #!/usr/bin/php
 <?php
 
-define ('XAPUID','FF10A200');
-define ('XAPSOURCE','Hengwm.HAC.Sensors');
-define ('XAPHEARTBEAT',60);
-define ('XAPPORT',3639);
-define ('XAPRXTIMEOUT',5.0);
-
-# debug values (can be ORed together)
-define ('XAP_DEBUG_ID',2);
-
+include("lib/hac_sensor_defines.inc.php");
+include("lib/functions.inc.php");
 include("lib/xaplib.inc.php");
+logformat("hac_sensor is starting....\n");
 
-define ('SENSORPOLLTIME',60); //how often to read sensors
-define ('SENSORPATH','/sys/devices/w1_bus_master1');
-define ('SENSORLIST',SENSORPATH.'/w1_master_slaves');
+$mods=explode(",",KERNELMODULES);
+foreach($mods as $m) `rmmod $m`;
+foreach($mods as $m) `modprobe $m`;
 
 define ('SENSORMAPFILE',dirname(__FILE__).'/etc/hac_w1_sensor_map.txt');
-
-date_default_timezone_set('Europe/London');
-ob_implicit_flush ();
-set_time_limit (0);
-// signal handling
-declare(ticks=1); $must_exit=0;
-pcntl_signal(SIGTERM, "signal_handler");
-pcntl_signal(SIGINT, "signal_handler");
-
-$argc=$_SERVER["argc"];
-$argv=$_SERVER["argv"]; //$argv is an array
-if($argc==0) error(usage());
-$args=parse_args($argc,$argv);
-if(isset($args['d'])) $debug=$args['d'];
-elseif(isset($args['debug'])) $debug=$args['debug'];
-else $debug=0;
 
 if(isset($args['l']) or isset($args['list-sensors'])) {
 	$debug=1;
@@ -49,8 +27,6 @@ if(isset($args['r']) or isset($args['remap-sensors'])) {
 	exit(0);
 }
 
-
-
 $ltt=time()-SENSORPOLLTIME-1;
 
 xap_connect();
@@ -61,14 +37,23 @@ while(1) {
 	//send xAP heartbeat periodically
 	$t=floor(xap_check_send_heartbeat()); //and return time in secs
 
-	if($t-$ltt>SENSORPOLLTIME) {
+	if($t-$ltt>=SENSORPOLLTIME) {
 		$tsent=send_data();
 		$ltt=$t;
 	}
 
-	sleep(5);
-
+	if($must_exit) break;
+	sleep(1);
+	if($must_exit) break;
+	sleep(1);
+	if($must_exit) break;
+	sleep(1);
+	if($must_exit) break;
+	sleep(1);
+	if($must_exit) break;
+	sleep(1);
 }
+logformat("hac_sensor exiting cleanly.\n");
 
 //------------------------------------------------------
 function send_data() {
@@ -80,19 +65,19 @@ function send_data() {
 
 				if($v['TYPE']==28) { //1 wire temperature sensor
 					$id=$v['TYPE'].'-'.$v['SENSOR_ID'];
-					if($debug) printf("Reading 1 wire temperature sensor with ID: '%s' and NAME: '%s'. Data=",$id,$v['NAME']);
+					logformat(sprintf("Reading 1 wire temperature sensor with ID: '%s' and NAME: '%s'.\n",$id,$v['NAME']));
 					$cmd='cat '.SENSORPATH.'/'.$id.'/w1_slave';
 					$r=explode("\n",`$cmd`);
 					if(substr($r[0],-3)=='YES') {
 						$t=explode("=",$r[1]);
 						$temp=sprintf("%.03f",$t[1]/1000);
-						if($debug) printf("%s degC\n",$temp);
+						logformat(sprintf("Id=%s,Name=%s,Data=%s°C\n",$id,$v['NAME'],$temp));
 						$msg=sprintf("info.temperature\n{\nname=%s\ndatetime=%s\nunit=c\nvalue=%s\nsensorId=%s\n}\n",XAPSOURCE.'.'.$v['NAME'],date('YmdHis'),$temp,$id);
 						xap_sendMsg('xAPTSC.info',$msg,'',xap_make_endpoint_source(XAPSOURCE,$k),xap_make_endpoint_uid(XAPUID,$k));
 					}
 				}
 
-			} else if($debug) printf("Skipping 1 wire sensor with ID: '%s-%s' and NAME: '%s'.\n",$v['TYPE'],$v['SENSOR_ID'],$v['NAME']);
+			} else logformat(sprintf("Skipping 1 wire sensor with ID: '%s-%s' and NAME: '%s'.\n",$v['TYPE'],$v['SENSOR_ID'],$v['NAME']));
 		}
 	}
 	return 1;
@@ -145,53 +130,15 @@ function enumerate_w1_sensors($keep_existing=1,$keep_names=1) {
 					if($keep_existing===0 and $keep_names and isset($names[$cid])) $sensor_name=$names[$cid];
 					$sensors[$sensor_count]=array('ID'=>$sensor_count,'TYPE'=>$type,'SENSOR_ID'=>$sensor_id,'NAME'=>$sensor_name,'AVAILABLE'=>'YES');
 					$sensor_count++;
-					if($debug) printf("Found new sensor Type: %s, ID: %s, Name: '%s'\n",$type,$sensor_id,$sensor_name);
+					logformat(sprintf("Found new sensor Type: %s, ID: %s, Name: '%s'\n",$type,$sensor_id,$sensor_name));
 				}
 			}
 		}
-	} else if($debug) print "No Sensors Found!\n";
+	} else logformat("No Sensors Found!\n");
 	if($fp=@fopen(SENSORMAPFILE,'wb')) {
 		fwrite($fp,"ID\tTYPE\tSENSOR_ID\tAVAILABLE\tNAME\n");
 		for($i=0;$i<$sensor_count;$i++) fwrite($fp,sprintf("%s\t%s\t%s\t%s\t\t%s\n",$sensors[$i]['ID'],$sensors[$i]['TYPE'],$sensors[$i]['SENSOR_ID'],($sensors[$i]['AVAILABLE']?'YES':'NO'),$sensors[$i]['NAME']));
 		fclose($fp);
 	}
 	return $sensors;
-}
-
-function signal_handler($signal) {
-	global $must_exit;
-	switch($signal) {
-		case SIGTERM:
-			$must_exit='SIGTERM';
-			break;
-		case SIGKILL:
-			$must_exit='SIGKILL';
-			break;
-		case SIGINT:
-			$must_exit='SIGINT';
-			break;
-	}
-	print $must_exit."\n";
-}
-
-function parse_args(&$argc,&$argv) {
-	$argv[]="";
-	$argv[]="";
-	$args=array();
-	//build a hashed array of all the arguments
-	$i=1; $ov=0;
-	while ($i<$argc) {
-		if (substr($argv[$i],0,2)=="--") $a=substr($argv[$i++],2);
-		elseif (substr($argv[$i],0,1)=="-") $a=substr($argv[$i++],1);
-		else $a=$ov++;
-		if (strpos($a,"=") >0) {
-			$tmp=explode("=",$a);
-			$args[$tmp[0]]=$tmp[1];
-		} else {
-			if (substr($argv[$i],0,1)=="-" or $i==$argc) $v=1;
-			else $v=$argv[$i++];
-			$args[$a]=$v;
-		}
-	}
-	return $args;
 }

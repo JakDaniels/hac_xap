@@ -15,6 +15,7 @@ include("lib/io_xap_functions.inc.php");
 include("lib/hac_io_defines.inc.php");
 include("lib/hac_io_functions.inc.php");
 
+logformat("hac_io is starting....\n");
 GPIO_init();
 
 # these are the multiplex outputs for the switches up/down lines
@@ -28,28 +29,13 @@ $in1=I2C_Setup(PCF8574_ADDR1);
 $in2=I2C_Setup(PCF8574_ADDR2);
 $in3=I2C_Setup(PCF8574_ADDR3);
 $in4=I2C_Setup(PCF8574_ADDR4);
-# set all pins as inputs on the input boards
-$error=0;
-if($i1=I2C_Write ($in1, 255)<0) $error++; //chip is bidirectional, set outputs to 1 to read as input
-if($i2=I2C_Write ($in2, 255)<0) $error++; //chip is bidirectional, set outputs to 1 to read as input
-if($i3=I2C_Write ($in3, 255)<0) $error++; //chip is bidirectional, set outputs to 1 to read as input
-if($i4=I2C_Write ($in4, 255)<0) $error++; //chip is bidirectional, set outputs to 1 to read as input
-if($i1) printf("Opto input board 1 with address: 0x%X is missing or not functioning!\n",PCF8574_ADDR1);
-if($i2) printf("Opto input board 2 with address: 0x%X is missing or not functioning!\n",PCF8574_ADDR2);
-if($i3) printf("Opto input board 3 with address: 0x%X is missing or not functioning!\n",PCF8574_ADDR3);
-if($i4) printf("Opto input board 4 with address: 0x%X is missing or not functioning!\n",PCF8574_ADDR4);
-if($error) exit(1);
-
 $out1=I2C_Setup(PCA9555_ADDR1);
 $out2=I2C_Setup(PCA9555_ADDR2);
-# set all pins as outputs on the output boards and set all outputs high
-$error=0;
-if($o1=I2C_WriteReg16 ($out1, PCA9555_CONFPORT0, 0)<0) $error++; //sends to CONFPORT0 and 1
-if($o2=I2C_WriteReg16 ($out2, PCA9555_CONFPORT0, 0)<0) $error++; //sends to CONFPORT0 and 1
-if($o1) printf("PCA9555 based output board 1 with address: 0x%X is missing or not functioning!\n",PCA9555_ADDR1);
-if($o2) printf("PCA9555 based output board 2 with address: 0x%X is missing or not functioning!\n",PCA9555_ADDR2);
+// set all pins as inputs on the input boards
+// set all pins as outputs on the output boards
+$error=io_check_hardware($in1,$in2,$in3,$in4,$out1,$out2);
 if($error) exit(1);
-
+// and set all outputs high
 $o=I2C_WriteReg16 ($out1, PCA9555_OUTPORT0, 65535) ; //sends to OUTPORT0 and 1
 $o=I2C_WriteReg16 ($out2, PCA9555_OUTPORT0, 65535) ; //sends to OUTPORT0 and 1
 
@@ -73,37 +59,40 @@ if(isset($args['r']) or isset($args['reset'])) {
 
 if(!$r=io_read_state_file($state_file,$out_states,$in_states,$in_programs,$in_levels)) {
 	if(!$r=io_create_state_file($state_file,$out_states,$in_states,$in_programs,$in_levels)) {
-		die("Could not create persistence file $state_file");
+		logformat("Could not create persistence file $state_file");
+		exit(1);
 	}
 }
 
 if(!$r=io_read_names_file($inames_file,$inames,$itypes)) {
 	io_create_default_inames($inames,$itypes);
 	if(!$r=io_create_names_file($inames_file,$inames,$itypes)) {
-		die("Could not create default input names file $inames_file");
+		logformat("Could not create default input names file $inames_file");
+		exit(1);
 	}
 }
 
 if(!$r=io_read_names_file($onames_file,$onames,$otypes)) {
 	io_create_default_onames($onames,$otypes);
 	if(!$r=io_create_names_file($onames_file,$onames,$otypes)) {
-		die("Could not create default output names file $onames_file");
+		logformat("Could not create default output names file $onames_file");
+		exit(1);
 	}
 }
 
 if($debug&NAMES_DEBUG_ID) {
-	print "Startup Inputs:\n";
+	logformat("Startup Inputs:\n");
 	print_r($inames);
-	print "Startup Outputs:\n";
+	logformat("Startup Outputs:\n");
 	print_r($onames);
 }
 
 if($debug&IO_DEBUG_ID) {
-	print "Startup State:\n";
-	printf("Out States :%s\n",$out_states);
-	printf("In States  :%s\n",$in_states);
-	printf("In Programs:%s\n",$in_programs);
-	printf("In Levels  :%s\n",$in_levels);
+	logformat("Startup State:\n");
+	logformat(sprintf("Out States :%s\n",$out_states));
+	logformat(sprintf("In States  :%s\n",$in_states));
+	logformat(sprintf("In Programs:%s\n",$in_programs));
+	logformat(sprintf("In Levels  :%s\n",$in_levels));
 }
 
 $outputs=$out_states; //outputs is the real hardware output, out_states is our internal representation of it
@@ -113,7 +102,10 @@ for($i=0;$i<64;$i++) $otimes[$i+1]=sprintf("%d,%.02f",is_light_on($out_states,$i
 
 if($shm_id=shmop_open(IO_SHM_ID,'c',0666, 64*2*4)) { //64 i/o, 2 hex digits each, 4 params
 	io_write_shared_memory($shm_id,$out_states,$in_states,$in_programs,$in_levels);
-} else die("Could not open shared memory segment!\n");
+} else {
+	logformat("Could not open shared memory segment!\n");
+	exit(1);
+}
 
 xap_connect();
 $hold_count=floor(HOLDINTERVAL/POLLINTERVAL);
@@ -126,6 +118,10 @@ while(1) {
 	$t=microtime(true);
 
 	$something_changed=0;
+
+	//do this every loop now so we can check if i2c bus is still up or input or output board removed
+	$error=io_check_hardware($in1,$in2,$in3,$in4,$out1,$out2);
+	if($error) exit(1);
 
 	//activate the up line, then check for any switches on
   GPIO_Output(GPIO_PIN_UP,GPIO_HIGH);
@@ -263,11 +259,11 @@ while(1) {
   if($something_changed or $outputs_changed or $inputs_changed) {
   	io_write_state_file($state_file,$out_states,$in_states,$in_programs,$in_levels);
 		if($debug&IO_DEBUG_ID) {
-			print "Current State:\n";
-			printf("Out States :%s\n",$out_states);
-			printf("In States  :%s\n",$in_states);
-			printf("In Programs:%s\n",$in_programs);
-			printf("In Levels  :%s\n",$in_levels);
+			logformat("Current State:\n");
+			logformat(sprintf("Out States :%s\n",$out_states));
+			logformat(sprintf("In States  :%s\n",$in_states));
+			logformat(sprintf("In Programs:%s\n",$in_programs));
+			logformat(sprintf("In Levels  :%s\n",$in_levels));
 		}
   }
 
@@ -288,8 +284,8 @@ while(1) {
 		if($houtputs_changed) {
 			set_outputs($outputs); //set the hardware outputs
 			if($debug&IO_DEBUG_ID) {
-				print "Current Hardware State:\n";
-				printf("Out States :%s\n",$outputs);
+				logformat("Current Hardware State:\n");
+				logformat(sprintf("Out States :%s\n",$outputs));
 			}
 		}
 	}
@@ -303,3 +299,4 @@ while(1) {
 io_write_state_file($state_file,$out_states,$in_states,$in_programs,$in_levels);
 socket_close($xap_sock_in);
 shmop_close($shm_id);
+logformat("hac_io exiting cleanly.\n");
