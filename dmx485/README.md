@@ -3,7 +3,7 @@ dmx485
 
 This consists of 3 parts.
 
-1. libdmx485 is a shared library for reading and writing DMX over a RS485 USB interface such as the FTDIChip USB-COM485.
+1. libdmx485 is a shared library for writing DMX over a RS485 USB interface such as the FTDIChip USB-COM485.
 The library is a port of dmx485 written by Mike Bourgeous http://blog.mikebourgeous.com/2010/06/06/dmx485-a-dmx-512-interface-library/
 but with a few minor changes.
 
