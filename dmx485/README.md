@@ -19,6 +19,7 @@ Example invocation of dmx485out:
 	
 
 Usage:
+
 	Usage: dmx485out /dev/ttyUSBx SHM_KEY SEM_KEY Channels DEBUG_LEVEL
 	SHM_KEY is a shared memory key and SEM_KEY is a semaphore key and both are specified as 32bit hex numbers e.g. 0xDEADBEEF
 	Channels is the number of DMX channels to broadcast
