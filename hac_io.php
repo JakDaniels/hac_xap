@@ -16,6 +16,7 @@ include("lib/hac_io_defines.inc.php");
 include("lib/hac_io_functions.inc.php");
 
 logformat("hac_io is starting....\n");
+declare(ticks=10); //as of php 5.3 this must be in the main program, not just an include
 GPIO_init();
 
 # these are the multiplex outputs for the switches up/down lines

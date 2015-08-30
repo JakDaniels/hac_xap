@@ -16,6 +16,7 @@ include("lib/dmx_xap_functions.inc.php");
 include("lib/hac_dmx_defines.inc.php");
 include("lib/hac_dmx_functions.inc.php");
 logformat("hac_cmd is starting....\n");
+declare(ticks=10); //as of php 5.3 this must be in the main program, not just an include
 
 $out_states=''; //these will be 64 2 digit hex items
 $in_states='';

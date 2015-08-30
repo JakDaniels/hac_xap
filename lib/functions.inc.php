@@ -16,17 +16,17 @@ if(isset($args['d'])) $debug=$args['d'];
 elseif(isset($args['debug'])) $debug=$args['debug'];
 else $debug=0;
 
-function signal_handler($signal) {
+function signal_handler($signo) {
 	global $must_exit;
-	switch($signal) {
+	switch($signo) {
 		case SIGTERM:
 			$must_exit='SIGTERM';
 			break;
-		case SIGKILL:
-			$must_exit='SIGKILL';
-			break;
 		case SIGINT:
 			$must_exit='SIGINT';
+			break;
+		default:
+			$must_exit=$signo;
 			break;
 	}
 	logformat(sprintf("Received signal: %s\n",$must_exit));

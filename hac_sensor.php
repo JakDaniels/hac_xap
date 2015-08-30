@@ -5,6 +5,7 @@ include("lib/hac_sensor_defines.inc.php");
 include("lib/functions.inc.php");
 include("lib/xaplib.inc.php");
 logformat("hac_sensor is starting....\n");
+declare(ticks=10); //as of php 5.3 this must be in the main program, not just an include
 
 $mods=explode(",",KERNELMODULES);
 foreach($mods as $m) `rmmod $m`;
@@ -28,6 +29,8 @@ if(isset($args['r']) or isset($args['remap-sensors'])) {
 }
 
 $ltt=time()-SENSORPOLLTIME-1;
+
+$minmax=array();
 
 xap_connect();
 
@@ -57,7 +60,7 @@ logformat("hac_sensor exiting cleanly.\n");
 
 //------------------------------------------------------
 function send_data() {
-	global $debug;
+	global $debug,$minmax;
 	$s=enumerate_w1_sensors();
 	if(is_array($s)) {
 		foreach($s as $k=>$v) { //$k=xap_id $v=sensor metadata
@@ -71,8 +74,20 @@ function send_data() {
 					if(substr($r[0],-3)=='YES') {
 						$t=explode("=",$r[1]);
 						$temp=sprintf("%.03f",$t[1]/1000);
+						$dt=date('YmdHis');
+						// deal with min and max values and save them
+						if(!isset($minmax[$id])) $minmax[$id]=array('min'=>$temp,'mintime'=>$dt,'max'=>$temp,'maxtime'=>$dt);
+						if($temp<$minmax[$id]['min']) {
+							$minmax[$id]['min']=$temp;
+							$minmax[$id]['mintime']=$dt;
+						}
+						if($temp>$minmax[$id]['max']) {
+							$minmax[$id]['max']=$temp;
+							$minmax[$id]['maxtime']=$dt;
+						}
 						logformat(sprintf("Id=%s,Name=%s,Data=%s°C\n",$id,$v['NAME'],$temp));
-						$msg=sprintf("info.temperature\n{\nname=%s\ndatetime=%s\nunit=c\nvalue=%s\nsensorId=%s\n}\n",XAPSOURCE.'.'.$v['NAME'],date('YmdHis'),$temp,$id);
+						$msg=sprintf("info.temperature\n{\nname=%s\ndatetime=%s\nunit=c\nvalue=%s\nsensorId=%s\n}\n",XAPSOURCE.'.'.$v['NAME'],$dt,$temp,$id);
+						$msg.=sprintf("stats.temperature\n{\nmax=%s\nmaxtime=%s\nmin=%s\nmintime=%s\n}\n",$minmax[$id]['max'],$minmax[$id]['maxtime'],$minmax[$id]['min'],$minmax[$id]['mintime']);
 						xap_sendMsg('xAPTSC.info',$msg,'',xap_make_endpoint_source(XAPSOURCE,$k),xap_make_endpoint_uid(XAPUID,$k));
 					}
 				}
